@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Age Calculator (AD & BS)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: #fff;
+      padding: 20px 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 340px;
+    }
+    h2 { margin-bottom: 15px; }
+    select, input[type="number"] {
+      padding: 8px;
+      margin: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      text-align: center;
+    }
+    input[type="number"] {
+      width: 80px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 15px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover { background: #0056b3; }
+    .result { margin-top: 15px; font-weight: bold; color: #333; }
+    .error { color: red; margin-top: 10px; }
+    .info { margin-top: 10px; font-size: 14px; color: #444; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Age Calculator (AD / BS)</h2>
+    <p>Enter your birth date:</p>
+    <div>
+      <select id="calendarType">
+        <option value="AD">AD (Gregorian)</option>
+        <option value="BS">BS (Bikram Sambat)</option>
+      </select>
+    </div>
+    <div>
+      <input type="number" id="day" placeholder="DD" min="1" max="31"> /
+      <input type="number" id="month" placeholder="MM" min="1" max="12"> /
+      <input type="number" id="year" placeholder="YYYY" min="1900">
+    </div>
+    <button id="calc">Calculate</button>
+    <div id="result" class="result"></div>
+    <div id="info" class="info"></div>
+    <div id="error" class="error"></div>
+  </div>
+
+  <script>
+    // Simple BS ↔ AD conversion based on offset (roughly 56 years 8 months difference)
+    // This is an approximate offline converter for practical use.
+    function bsToAd(bsY, bsM, bsD) {
+      // Bikram Sambat is about 56 years and 8 months ahead of AD.
+      const offsetYears = 56;
+      const offsetMonths = 8;
+      let adY = bsY - offsetYears;
+      let adM = bsM - offsetMonths;
+      let adD = bsD;
+
+      if (adM <= 0) {
+        adY -= 1;
+        adM += 12;
+      }
+
+      // Prevent invalid days
+      if (adD > 28 && adM === 2) adD = 28;
+      return new Date(adY, adM - 1, adD);
+    }
+
+    function adToBs(adY, adM, adD) {
+      const offsetYears = 56;
+      const offsetMonths = 8;
+      let bsY = adY + offsetYears;
+      let bsM = adM + offsetMonths;
+      let bsD = adD;
+
+      if (bsM > 12) {
+        bsY += 1;
+        bsM -= 12;
+      }
+
+      return {y: bsY, m: bsM, d: bsD};
+    }
+
+    document.getElementById('calc').addEventListener('click', function() {
+      const d = parseInt(document.getElementById('day').value);
+      const m = parseInt(document.getElementById('month').value);
+      const y = parseInt(document.getElementById('year').value);
+      const type = document.getElementById('calendarType').value;
+
+      const result = document.getElementById('result');
+      const info = document.getElementById('info');
+      const error = document.getElementById('error');
+      result.textContent = '';
+      info.textContent = '';
+      error.textContent = '';
+
+      if (!d || !m || !y) {
+        error.textContent = 'Please fill in all fields.';
+        return;
+      }
+
+      let birthDate;
+
+      if (type === 'AD') {
+        birthDate = new Date(y, m - 1, d);
+      } else {
+        birthDate = bsToAd(y, m, d);
+      }
+
+      const today = new Date();
+      if (birthDate > today) {
+        error.textContent = 'Birth date cannot be in the future.';
+        return;
+      }
+
+      let years = today.getFullYear() - birthDate.getFullYear();
+      let months = today.getMonth() - birthDate.getMonth();
+      let days = today.getDate() - birthDate.getDate();
+
+      if (days < 0) {
+        months--;
+        const prevMonthDays = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+        days += prevMonthDays;
+      }
+      if (months < 0) {
+        years--;
+        months += 12;
+      }
+
+      result.textContent = `You are ${years} years, ${months} months, and ${days} days old.`;
+
+      // Show both AD and BS equivalent dates
+      let adDate, bsDate;
+      if (type === 'AD') {
+        adDate = `${y}-${m}-${d}`;
+        const bs = adToBs(y, m, d);
+        bsDate = `${bs.y}-${bs.m}-${bs.d}`;
+      } else {
+        const ad = birthDate;
+        adDate = `${ad.getFullYear()}-${ad.getMonth()+1}-${ad.getDate()}`;
+        bsDate = `${y}-${m}-${d}`;
+      }
+
+      info.innerHTML = `Birth Date (AD): ${adDate}<br>Birth Date (BS): ${bsDate}`;
+    });
+  </script>
+</body>
+</html>
