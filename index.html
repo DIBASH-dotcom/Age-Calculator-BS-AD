@@ -55,8 +55,8 @@
     <p>Enter your birth date:</p>
     <div>
       <select id="calendarType">
-        <option value="AD">AD (Gregorian)</option>
-        <option value="BS">BS (Bikram Sambat)</option>
+        <option value="AD">AD</option>
+        <option value="BS">BS</option>
       </select>
     </div>
     <div>
@@ -71,10 +71,9 @@
   </div>
 
   <script>
-    // Simple BS ↔ AD conversion based on offset (roughly 56 years 8 months difference)
-    // This is an approximate offline converter for practical use.
+    
     function bsToAd(bsY, bsM, bsD) {
-      // Bikram Sambat is about 56 years and 8 months ahead of AD.
+     
       const offsetYears = 56;
       const offsetMonths = 8;
       let adY = bsY - offsetYears;
@@ -170,4 +169,5 @@
     });
   </script>
 </body>
+
 </html>
